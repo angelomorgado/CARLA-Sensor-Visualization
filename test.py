@@ -6,14 +6,16 @@ from PIL import Image
 import time
 
 # =================================== Global variables ===================================
-IM_WIDTH   = 1920
-IM_HEIGHT  = 1080
-FPS        = 30
-ACTIVE_IMG = None
+IM_WIDTH    = 1920
+IM_HEIGHT   = 1080
+FPS         = 30
+ACTIVE_IMG  = None
+VEHICLE     = "vehicle.tesla.model3"
+SENSOR_LIST = [] # The sensor objects should be stored in a persistent data structure or a global list to prevent them from being immediately destroyed when the function exits.
 # ========================================================================================
 
 def create_vehicle(world):
-    vehicle_bp = world.get_blueprint_library().filter('vehicle.*')
+    vehicle_bp = world.get_blueprint_library().filter(VEHICLE)
     spawn_points = world.get_map().get_spawn_points()
     
     vehicle = None
@@ -35,6 +37,8 @@ def create_vehicle(world):
 
 
 def attach_sensors(vehicle, world):
+    global SENSOR_LIST
+
     # ============ RGB Camera =============
     sensor_bp = world.get_blueprint_library().find('sensor.camera.rgb')
     # attributes
@@ -49,31 +53,37 @@ def attach_sensors(vehicle, world):
     camera_sensor = world.spawn_actor(sensor_bp, transform, attach_to=vehicle)
 
     # listen
-    camera_sensor.listen(lambda data: camera_sensor_callback(data))
+    camera_sensor.listen(camera_sensor_callback)
+    SENSOR_LIST.append(camera_sensor)
 
 # This function decides what to do with the camera data, in the future i'll make a program to show it in real time, for now i'll just save the images
 def camera_sensor_callback(data):
-    global ACTIVE_IMG
-
     # Get the image from the data
     image = Image.frombytes('RGBA', (data.width, data.height), data.raw_data, 'raw', 'RGBA')
 
     # Get the timestamp for naming for example
     timestamp = data.timestamp
+    
+    # Convert the image to a NumPy array
+    image_array = np.array(image)
+    
+    # Process the image
+    # grayscale_image = cv2.cvtColor(image_array, cv2.COLOR_RGBA2GRAY) # For example, convert to grayscale
 
     # Display the processed image using Pygame
-    ACTIVE_IMG = image
+    ACTIVE_IMG = image_array
 
     # Save image in directory
-    image.save(f'data/rgb_camera/{timestamp}.png')
+    cv2.imwrite('data/rgb_camera/' + str(timestamp) + '.png', image_array)
 
     print('Image saved at data/rgb_camera/' + str(timestamp) + '.png')
-    
+
+
 def destroy_vehicle(world, vehicle):
     vehicle.set_autopilot(False)
 
     # Destroy sensors
-    for sensor in vehicle.get_sensors():
+    for sensor in SENSOR_LIST:
         sensor.destroy()
 
     vehicle.destroy()
@@ -88,18 +98,14 @@ def main():
     if world is None:
         print('Failed to load world')
         return
+    
+    vehicle = create_vehicle(world)
+    vehicle.set_autopilot(True)
 
-    # Add a loop to keep the program running for a short duration
-    beggining_lock = True
     try:
         while True:
-            if beggining_lock:
-                vehicle = create_vehicle(world)
-                vehicle.set_autopilot(True)
-                beggining_lock = False
+            world.tick()
     except KeyboardInterrupt:
-        pass
-    finally:
         print('Bye bye')
         destroy_vehicle(world, vehicle)
 
