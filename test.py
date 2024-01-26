@@ -1,9 +1,9 @@
-import pygame
 import cv2
 import carla
 import numpy as np
 import random
 from PIL import Image
+import time
 
 # =================================== Global variables ===================================
 IM_WIDTH   = 1920
@@ -61,45 +61,25 @@ def camera_sensor_callback(data):
     # Get the timestamp for naming for example
     timestamp = data.timestamp
 
-    # Convert the image to a NumPy array
-    image_array = np.array(image)
-    
-    # Process the image
-    # grayscale_image = cv2.cvtColor(image_array, cv2.COLOR_RGBA2GRAY) # For example, convert to grayscale
-
     # Display the processed image using Pygame
-    ACTIVE_IMG = image_array
+    ACTIVE_IMG = image
 
     # Save image in directory
-    cv2.imwrite('data/rgb_camera/' + str(timestamp) + '.png', image_array)
+    image.save(f'data/rgb_camera/{timestamp}.png')
+
+    print('Image saved at data/rgb_camera/' + str(timestamp) + '.png')
     
-def destroy_sensors(world):
-    actors = world.get_actors()
-    for actor in actors:
-        if actor.type_id == 'sensor.camera.rgb':
-            actor.destroy()
+def destroy_vehicle(world, vehicle):
+    vehicle.set_autopilot(False)
 
-# def play_window(world, vehicle, screen):
-#     try:
-#         while True:
-#             for event in pygame.event.get():
-#                 if event.type == pygame.QUIT:
-#                     pygame.quit()
-#                     return
-                
-#                 if ACTIVE_IMG is not None:
-#                     pygame_surface = pygame.surfarray.make_surface(ACTIVE_IMG.swapaxes(0, 1))
-#                     screen.blit(pygame_surface, (0,0))
-#                     pygame.display.flip()
+    # Destroy sensors
+    for sensor in vehicle.get_sensors():
+        sensor.destroy()
 
-#             pygame.time.Clock().tick(FPS)  # Control frame rate
-            
-#     finally:
-#         destroy_sensors(world)
-#         vehicle.destroy()
-#         pygame.quit()
-#         print('Bye bye')
+    vehicle.destroy()
 
+
+# =============================================================================================================
 def main():
     client = carla.Client('localhost', 2000)
     client.set_timeout(10.0)
@@ -108,14 +88,20 @@ def main():
     if world is None:
         print('Failed to load world')
         return
-    
-    frame = 0
-    vehicle = create_vehicle(world)
 
-    # pygame.init()
-    # pygame.display.set_caption('Carla Sensor feed')
-    # screen = pygame.display.set_mode((IM_WIDTH, IM_HEIGHT)) 
-    # play_window(world, vehicle, screen)
+    # Add a loop to keep the program running for a short duration
+    beggining_lock = True
+    try:
+        while True:
+            if beggining_lock:
+                vehicle = create_vehicle(world)
+                vehicle.set_autopilot(True)
+                beggining_lock = False
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print('Bye bye')
+        destroy_vehicle(world, vehicle)
 
 if __name__ == '__main__':
     main()
