@@ -54,7 +54,7 @@ def attach_sensors(vehicle, world):
 
     # listen
     camera_sensor.listen(camera_sensor_callback)
-    SENSOR_LIST.append(camera_sensor)
+    SENSOR_LIST.append((camera_sensor, pygame.Surface((640, 360))))  # Store the sensor and its associated Pygame sub-surface
 
 # This function decides what to do with the camera data, in the future i'll make a program to show it in real time, for now i'll just save the images
 def camera_sensor_callback(data):
@@ -82,23 +82,26 @@ def destroy_vehicle(vehicle):
     vehicle.set_autopilot(False)
 
     # Destroy sensors
-    for sensor in SENSOR_LIST:
+    for sensor, screen in SENSOR_LIST:
         sensor.destroy()
+        screen = None
 
     vehicle.destroy()
 
-def play_window(world, vehicle, screen):
+def play_window(world, vehicle, main_screen):
     try:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     return
-                
-                if ACTIVE_IMG is not None:
-                    pygame_surface = pygame.surfarray.make_surface(ACTIVE_IMG.swapaxes(0,1))
-                    screen.blit(pygame_surface, (0,0))
-                    pygame.display.flip()
+
+            main_screen.fill((0, 0, 0))  # Fill the main window with black background
+
+            for sensor, sub_surface in SENSOR_LIST:
+                main_screen.blit(sub_surface, (0, 0))  # Display each sub-surface in the main window
+
+            pygame.display.flip()
             
     finally:
         destroy_vehicle(vehicle)
@@ -119,8 +122,8 @@ def main():
 
     pygame.init()
     pygame.display.set_caption('Carla Sensor feed')
-    screen = pygame.display.set_mode((IM_WIDTH, IM_HEIGHT)) 
-    play_window(world, vehicle, screen)
+    main_screen = pygame.display.set_mode((IM_WIDTH, IM_HEIGHT))
+    play_window(world, vehicle, main_screen)
 
 if __name__ == '__main__':
     main()
