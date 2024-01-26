@@ -58,6 +58,8 @@ def attach_sensors(vehicle, world):
 
 # This function decides what to do with the camera data, in the future i'll make a program to show it in real time, for now i'll just save the images
 def camera_sensor_callback(data):
+    global ACTIVE_IMG
+
     # Get the image from the data
     image = Image.frombytes('RGBA', (data.width, data.height), data.raw_data, 'raw', 'RGBA')
 
@@ -76,10 +78,8 @@ def camera_sensor_callback(data):
     # Save image in directory
     cv2.imwrite('data/rgb_camera/' + str(timestamp) + '.png', image_array)
 
-    print('Image saved at data/rgb_camera/' + str(timestamp) + '.png')
 
-
-def destroy_vehicle(world, vehicle):
+def destroy_vehicle(vehicle):
     vehicle.set_autopilot(False)
 
     # Destroy sensors
@@ -107,7 +107,7 @@ def main():
             world.tick()
     except KeyboardInterrupt:
         print('Bye bye')
-        destroy_vehicle(world, vehicle)
+        destroy_vehicle(vehicle)
 
 if __name__ == '__main__':
     main()
