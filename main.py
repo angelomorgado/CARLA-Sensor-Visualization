@@ -12,6 +12,8 @@ FPS         = 30
 ACTIVE_IMG  = None
 VEHICLE     = "vehicle.tesla.model3"
 SENSOR_LIST = [] # The sensor objects should be stored in a persistent data structure or a global list to prevent them from being immediately destroyed when the function exits.
+BORDER_WIDTH = 5
+MARGIN = 10
 # ========================================================================================
 
 def create_vehicle(world):
@@ -76,7 +78,7 @@ def camera_sensor_callback(data):
 
     # Save image in directory
     timestamp = data.timestamp
-    cv2.imwrite(f'data/rgb_camera/{timestamp}.png', ACTIVE_IMG)
+    # cv2.imwrite(f'data/rgb_camera/{timestamp}.png', ACTIVE_IMG)
     
 def destroy_vehicle(vehicle):
     vehicle.set_autopilot(False)
@@ -89,6 +91,8 @@ def destroy_vehicle(vehicle):
     vehicle.destroy()
 
 def play_window(world, vehicle, main_screen):
+    global ACTIVE_IMG
+
     try:
         while True:
             for event in pygame.event.get():
@@ -96,13 +100,22 @@ def play_window(world, vehicle, main_screen):
                     pygame.quit()
                     return
 
-            main_screen.fill((0, 0, 0))  # Fill the main window with black background
+            main_screen.fill((127, 127, 127))  # Fill the main window with a gray background
 
-            for sensor, sub_surface in SENSOR_LIST:
-                main_screen.blit(sub_surface, (0, 0))  # Display each sub-surface in the main window
+            for idx, (sensor, sub_surface) in enumerate(SENSOR_LIST):
+                sub_surface_width, sub_surface_height = sub_surface.get_size()
+                x_position = MARGIN + idx * (sub_surface_width + MARGIN)
+                y_position = MARGIN
+
+                # Display each sub-surface with a margin
+                main_screen.blit(sub_surface, (x_position, y_position))
+
+                # Check if the active_img is not None before blitting it
+                if ACTIVE_IMG is not None:
+                    pygame_surface = pygame.surfarray.make_surface(ACTIVE_IMG.swapaxes(0, 1))
+                    main_screen.blit(pygame_surface, (x_position, y_position))
 
             pygame.display.flip()
-            
     finally:
         destroy_vehicle(vehicle)
         pygame.quit()
