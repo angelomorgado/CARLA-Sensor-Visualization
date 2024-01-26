@@ -42,8 +42,8 @@ def attach_sensors(vehicle, world):
     # ============ RGB Camera =============
     sensor_bp = world.get_blueprint_library().find('sensor.camera.rgb')
     # attributes
-    sensor_bp.set_attribute('image_size_x', '1920')
-    sensor_bp.set_attribute('image_size_y', '1080')
+    sensor_bp.set_attribute('image_size_x', '640')
+    sensor_bp.set_attribute('image_size_y', '360')
     sensor_bp.set_attribute('fov', '110')
     sensor_bp.set_attribute('sensor_tick', '1.0')
 
@@ -70,10 +70,6 @@ def camera_sensor_callback(data):
     image_array = np.ascontiguousarray(image_array)
     # Convert to RGB using OpenCV function
     image_array = cv2.cvtColor(image_array, cv2.COLOR_RGBA2RGB)
-
-    # Process the image if needed
-    # For example, convert to grayscale
-    # grayscale_image = cv2.cvtColor(image_array, cv2.COLOR_RGBA2GRAY)
 
     # Display the processed image using Pygame
     ACTIVE_IMG = image_array
@@ -103,8 +99,6 @@ def play_window(world, vehicle, screen):
                     pygame_surface = pygame.surfarray.make_surface(ACTIVE_IMG.swapaxes(0,1))
                     screen.blit(pygame_surface, (0,0))
                     pygame.display.flip()
-
-            # pygame.time.Clock().tick(FPS)  # Control frame rate
             
     finally:
         destroy_vehicle(vehicle)
