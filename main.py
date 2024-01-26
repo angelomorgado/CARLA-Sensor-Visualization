@@ -47,7 +47,7 @@ def attach_sensors(vehicle, world):
     sensor_bp.set_attribute('image_size_x', '640')
     sensor_bp.set_attribute('image_size_y', '360')
     sensor_bp.set_attribute('fov', '110')
-    sensor_bp.set_attribute('sensor_tick', '1.0')
+    sensor_bp.set_attribute('sensor_tick', '0.1')
 
     # attach it to the vehicle
     # This will place the camera in the front bumper of the car
@@ -57,6 +57,18 @@ def attach_sensors(vehicle, world):
     # listen
     camera_sensor.listen(camera_sensor_callback)
     SENSOR_LIST.append((camera_sensor, pygame.Surface((640, 360))))  # Store the sensor and its associated Pygame sub-surface
+
+    # ============ LiDAR =============
+    sensor_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
+    # attributes
+    sensor_bp.set_attribute('channels', '32')
+    sensor_bp.set_attribute('points_per_second', '56000')
+    sensor_bp.set_attribute('rotation_frequency', '10.0')
+    sensor_bp.set_attribute('upper_fov', '15.0')
+    sensor_bp.set_attribute('lower_fov', '-30.0')
+    sensor_bp.set_attribute('range', '10.0')
+    sensor_bp.set_attribute('sensor_tick', '0.1')
+
 
 # This function decides what to do with the camera data, in the future i'll make a program to show it in real time, for now i'll just save the images
 def camera_sensor_callback(data):
