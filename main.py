@@ -13,7 +13,7 @@ ACTIVE_IMG  = None
 VEHICLE     = "vehicle.tesla.model3"
 SENSOR_LIST = [] # The sensor objects should be stored in a persistent data structure or a global list to prevent them from being immediately destroyed when the function exits.
 BORDER_WIDTH = 5
-MARGIN = 10
+MARGIN = 30
 # ========================================================================================
 
 def create_vehicle(world):
@@ -107,6 +107,11 @@ def play_window(world, vehicle, main_screen):
                 x_position = MARGIN + idx * (sub_surface_width + MARGIN)
                 y_position = MARGIN
 
+                # Draw a border around each sub-surface
+                pygame.draw.rect(main_screen, (50, 50, 50), (x_position - BORDER_WIDTH, y_position - BORDER_WIDTH,
+                                                               sub_surface_width + 2 * BORDER_WIDTH,
+                                                               sub_surface_height + 2 * BORDER_WIDTH), BORDER_WIDTH)
+
                 # Display each sub-surface with a margin
                 main_screen.blit(sub_surface, (x_position, y_position))
 
@@ -116,6 +121,7 @@ def play_window(world, vehicle, main_screen):
                     main_screen.blit(pygame_surface, (x_position, y_position))
 
             pygame.display.flip()
+
     finally:
         destroy_vehicle(vehicle)
         pygame.quit()
