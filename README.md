@@ -2,6 +2,8 @@
 
 Allows to visualize an ego vehicle's sensors using PyGame.
 
+![](gifs/sensor-visualizer.gif)
+
 The main drawback is that this isn't dynamic, only allows pre determined sensors
 
 ## TODO
@@ -12,4 +14,4 @@ The main drawback is that this isn't dynamic, only allows pre determined sensors
 
 - Put the sensors information in a JSON so the code doesn't need to be rewritten
 
-- GNSS, IMU, Collision, Lane Invasion, Obstacles
+- Collision, Lane Invasion, Obstacles sensors
