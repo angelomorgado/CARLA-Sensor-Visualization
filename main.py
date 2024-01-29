@@ -9,7 +9,7 @@ from PIL import Image
 IM_WIDTH    = 1920
 IM_HEIGHT   = 1080
 FPS         = 30
-ACTIVE_IMG  = None
+ACTIVE_DATA = [] # Stores the latest frame from each sensor 
 VEHICLE     = "vehicle.tesla.model3"
 SENSOR_LIST = [] # The sensor objects should be stored in a persistent data structure or a global list to prevent them from being immediately destroyed when the function exits.
 BORDER_WIDTH = 5
@@ -40,6 +40,7 @@ def create_vehicle(world):
 
 def attach_sensors(vehicle, world):
     global SENSOR_LIST
+    global ACTIVE_DATA
 
     # ============ RGB Camera =============
     sensor_bp = world.get_blueprint_library().find('sensor.camera.rgb')
@@ -55,12 +56,22 @@ def attach_sensors(vehicle, world):
     camera_sensor = world.spawn_actor(sensor_bp, transform, attach_to=vehicle)
 
     # listen
-    camera_sensor.listen(camera_sensor_callback)
+    ACTIVE_DATA.append(None)
+    camera_sensor.listen(lambda data: camera_sensor_callback(data, 0))
     SENSOR_LIST.append((camera_sensor, pygame.Surface((640, 360))))  # Store the sensor and its associated Pygame sub-surface
 
     # ============ LiDAR =============
     sensor_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
     # attributes
+    sensor_bp.set_attribute('channels', '64')  # Increase the number of channels
+    sensor_bp.set_attribute('points_per_second', '100000')  # Increase point density
+    sensor_bp.set_attribute('rotation_frequency', '10.0')
+    sensor_bp.set_attribute('upper_fov', '20.0')  # Adjust FOV to cover a larger area
+    sensor_bp.set_attribute('lower_fov', '-20.0')  # Adjust FOV to cover a larger area
+    sensor_bp.set_attribute('range', '100.0')  # Increase the range for better coverage
+    sensor_bp.set_attribute('sensor_tick', '0.1')
+
+    '''
     sensor_bp.set_attribute('channels', '32')
     sensor_bp.set_attribute('points_per_second', '56000')
     sensor_bp.set_attribute('rotation_frequency', '10.0')
@@ -68,11 +79,22 @@ def attach_sensors(vehicle, world):
     sensor_bp.set_attribute('lower_fov', '-30.0')
     sensor_bp.set_attribute('range', '10.0')
     sensor_bp.set_attribute('sensor_tick', '0.1')
+    '''
+
+    # attach it to the vehicle
+    # This will place the camera in the front bumper of the car
+    transform = carla.Transform(carla.Location(x=0.8, z=1.7))
+    lidar_sensor = world.spawn_actor(sensor_bp, transform, attach_to=vehicle)
+
+    # listen
+    ACTIVE_DATA.append(None)
+    lidar_sensor.listen(lambda data: lidar_sensor_callback(data, 1))
+    SENSOR_LIST.append((lidar_sensor, pygame.Surface((640, 360))))  # Store the sensor and its associated Pygame sub-surface
 
 
 # This function decides what to do with the camera data, in the future i'll make a program to show it in real time, for now i'll just save the images
-def camera_sensor_callback(data):
-    global ACTIVE_IMG
+def camera_sensor_callback(data, idx):
+    global ACTIVE_DATA
 
     # Get the image from the data
     image = Image.frombytes('RGBA', (data.width, data.height), data.raw_data, 'raw', 'RGBA')
@@ -86,11 +108,60 @@ def camera_sensor_callback(data):
     image_array = cv2.cvtColor(image_array, cv2.COLOR_RGBA2RGB)
 
     # Display the processed image using Pygame
-    ACTIVE_IMG = image_array
+    ACTIVE_DATA[idx] = image_array
 
     # Save image in directory
     timestamp = data.timestamp
     # cv2.imwrite(f'data/rgb_camera/{timestamp}.png', ACTIVE_IMG)
+
+
+
+def lidar_sensor_callback(data, idx):
+    global ACTIVE_DATA
+
+    # Get the LiDAR point cloud from the data
+    lidar_data = data.raw_data
+    lidar_data = np.frombuffer(lidar_data, dtype=np.dtype('f4'))
+    lidar_data = np.reshape(lidar_data, (int(lidar_data.shape[0] / 4), 4))
+
+    # Extract X, Y, Z coordinates and intensity values
+    points_xyz = lidar_data[:, :3]
+    intensity = lidar_data[:, 3]
+
+    # Intensity scaling factor
+    intensity_scale = 10.0  # Adjust this value to control the brightness
+
+    # Create a 2D histogram with a predetermined size
+    width, height = 640, 360
+    lidar_image_array = np.zeros((height, width))
+
+    # Scale and shift X and Y coordinates to fit within the histogram size
+    x_scaled = ((points_xyz[:, 0] + 50) / 100) * (width - 1)
+    y_scaled = ((points_xyz[:, 1] + 50) / 100) * (height - 1)
+
+    # Round the scaled coordinates to integers
+    x_indices = np.round(x_scaled).astype(int)
+    y_indices = np.round(y_scaled).astype(int)
+
+    # Clip the indices to stay within the image bounds
+    x_indices = np.clip(x_indices, 0, width - 1)
+    y_indices = np.clip(y_indices, 0, height - 1)
+
+    # Assign scaled intensity values to the corresponding pixel in the histogram
+    lidar_image_array[y_indices, x_indices] = intensity * intensity_scale
+
+    # Clip the intensity values to stay within the valid color range
+    lidar_image_array = np.clip(lidar_image_array, 0, 255)
+
+    ACTIVE_DATA[idx] = lidar_image_array
+
+    # Save image in directory
+    # timestamp = data.timestamp
+    # cv2.imwrite(f'data/lidar/{timestamp}.png', ACTIVE_LIDAR)
+
+
+
+
     
 def destroy_vehicle(vehicle):
     vehicle.set_autopilot(False)
@@ -103,7 +174,6 @@ def destroy_vehicle(vehicle):
     vehicle.destroy()
 
 def play_window(world, vehicle, main_screen):
-    global ACTIVE_IMG
 
     try:
         while True:
@@ -128,8 +198,8 @@ def play_window(world, vehicle, main_screen):
                 main_screen.blit(sub_surface, (x_position, y_position))
 
                 # Check if the active_img is not None before blitting it
-                if ACTIVE_IMG is not None:
-                    pygame_surface = pygame.surfarray.make_surface(ACTIVE_IMG.swapaxes(0, 1))
+                if ACTIVE_DATA[idx] is not None:
+                    pygame_surface = pygame.surfarray.make_surface(ACTIVE_DATA[idx].swapaxes(0, 1))
                     main_screen.blit(pygame_surface, (x_position, y_position))
 
             pygame.display.flip()
