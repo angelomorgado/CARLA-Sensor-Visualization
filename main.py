@@ -18,6 +18,11 @@ NUM_COLS = 2  # Number of columns in the grid
 NUM_ROWS = 2  # Number of rows in the grid
 # ========================================================================================
 
+SENSOR_DICT = {
+    '0': 'RGB Camera',
+    '1': 'LiDAR',
+    '2': 'Radar'
+}
 
 def create_vehicle(world):
     vehicle_bp = world.get_blueprint_library().filter(VEHICLE)
@@ -255,6 +260,11 @@ def play_window(world, vehicle, main_screen):
                 if ACTIVE_DATA[idx] is not None:
                     pygame_surface = pygame.surfarray.make_surface(ACTIVE_DATA[idx].swapaxes(0, 1))
                     main_screen.blit(pygame_surface, (x_position, y_position))
+
+                # Display sensor legend
+                font = pygame.font.Font(None, 24)
+                legend_text = font.render(SENSOR_DICT[str(idx)], True, (255, 255, 255))
+                main_screen.blit(legend_text, (x_position + 10, y_position + sub_surface_height - 30))
 
             pygame.display.flip()
 
