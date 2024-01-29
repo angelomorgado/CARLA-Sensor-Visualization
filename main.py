@@ -10,6 +10,8 @@ IM_WIDTH    = 1920
 IM_HEIGHT   = 1080
 FPS         = 30
 ACTIVE_DATA = []  # Stores the latest frame from each sensor
+GNSS_DATA = None
+IMU_DATA = None
 VEHICLE     = "vehicle.tesla.model3"
 SENSOR_LIST = []  # The sensor objects should be stored in a persistent data structure or a global list
 BORDER_WIDTH = 5
@@ -109,7 +111,27 @@ def attach_sensors(vehicle, world):
     SENSOR_LIST.append((radar_sensor, pygame.Surface((640, 360))))  # Store the sensor and its associated Pygame sub-surface
 
 
-# This function decides what to do with the camera data, in the future i'll make a program to show it in real time, for now i'll just save the images
+    # ============ GNSS =============
+    gnss_bp = world.get_blueprint_library().find('sensor.other.gnss')
+    gnss_location = carla.Location(0,0,0)
+    gnss_rotation = carla.Rotation(0,0,0)
+    gnss_transform = carla.Transform(gnss_location,gnss_rotation)
+    gnss_bp.set_attribute("sensor_tick",str(0.1))
+    ego_gnss = world.spawn_actor(gnss_bp,gnss_transform,attach_to=vehicle, attachment_type=carla.AttachmentType.Rigid)
+    ego_gnss.listen(lambda gnss: gnss_callback(gnss))
+    SENSOR_LIST.append((ego_gnss, None))
+
+    # ============ IMU =============
+    imu_bp = world.get_blueprint_library().find('sensor.other.imu')
+    imu_location = carla.Location(0,0,0)
+    imu_rotation = carla.Rotation(0,0,0)
+    imu_transform = carla.Transform(imu_location,imu_rotation)
+    imu_bp.set_attribute("sensor_tick",str(0.1))
+    ego_imu = world.spawn_actor(imu_bp,imu_transform,attach_to=vehicle, attachment_type=carla.AttachmentType.Rigid)
+    ego_imu.listen(lambda imu: imu_callback(imu))
+    SENSOR_LIST.append((ego_imu, None)) 
+
+
 def camera_sensor_callback(data, idx):
     global ACTIVE_DATA
 
@@ -128,9 +150,8 @@ def camera_sensor_callback(data, idx):
     ACTIVE_DATA[idx] = image_array
 
     # Save image in directory
-    timestamp = data.timestamp
+    # timestamp = data.timestamp
     # cv2.imwrite(f'data/rgb_camera/{timestamp}.png', ACTIVE_IMG)
-
 
 
 def lidar_sensor_callback(data, idx):
@@ -216,7 +237,13 @@ def radar_sensor_callback(data, idx):
     # timestamp = data.timestamp
     # cv2.imwrite(f'data/radar/{timestamp}.png', ACTIVE_DATA[idx])
 
+def gnss_callback(data):
+    global GNSS_DATA
+    GNSS_DATA = data
 
+def imu_callback(data):
+    global IMU_DATA
+    IMU_DATA = data
 
     
 def destroy_vehicle(vehicle):
@@ -239,7 +266,7 @@ def play_window(world, vehicle, main_screen):
 
             main_screen.fill((127, 127, 127))  # Fill the main window with a gray background
 
-            for idx, (sensor, sub_surface) in enumerate(SENSOR_LIST):
+            for idx, (sensor, sub_surface) in enumerate(SENSOR_LIST[:-2]):
                 sub_surface_width, sub_surface_height = sub_surface.get_size()
 
                 # Calculate row and column index
@@ -266,6 +293,24 @@ def play_window(world, vehicle, main_screen):
                 font = pygame.font.Font(None, 24)
                 legend_text = font.render(SENSOR_DICT[str(idx)], True, (255, 255, 255))
                 main_screen.blit(legend_text, (x_position + 10, y_position + sub_surface_height - 30))
+
+            # Display GNSS data
+            if GNSS_DATA is not None:
+                gnss_font = pygame.font.Font(None, 24)
+                gnss_text = f"GNSS Sensor: Latitude {GNSS_DATA.latitude:.6f}, Longitude {GNSS_DATA.longitude:.6f}, Altitude {GNSS_DATA.altitude:.6f}"
+                gnss_surface = gnss_font.render(gnss_text, True, (255, 255, 255))
+                main_screen.blit(gnss_surface, (MARGIN, IM_HEIGHT - MARGIN))
+
+            # Display IMU data
+            if IMU_DATA is not None:
+                imu_font = pygame.font.Font(None, 24)
+                imu_text = f"IMU Sensor: Acceleration {IMU_DATA.accelerometer.x:.6f}, {IMU_DATA.accelerometer.y:.6f}, {IMU_DATA.accelerometer.z:.6f}," \
+                           f"Gyroscope {IMU_DATA.gyroscope.x:.6f}, {IMU_DATA.gyroscope.y:.6f}, {IMU_DATA.gyroscope.z:.6f}, " \
+                           f"Compass {IMU_DATA.compass:.6f}"
+                imu_surface = imu_font.render(imu_text, True, (255, 255, 255))
+                imu_text_rect = imu_surface.get_rect()
+                imu_text_rect.topleft = (IM_WIDTH - imu_text_rect.width - MARGIN, IM_HEIGHT - MARGIN)
+                main_screen.blit(imu_surface, imu_text_rect)
 
             pygame.display.flip()
 

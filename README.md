@@ -11,3 +11,5 @@ The main drawback is that this isn't dynamic, only allows pre determined sensors
 - Maybe make a web client of this that lets you chose different vehicles and verify if they have sensors and all. Cool idea.
 
 - Put the sensors information in a JSON so the code doesn't need to be rewritten
+
+- GNSS, IMU, Collision, Lane Invasion, Obstacles
