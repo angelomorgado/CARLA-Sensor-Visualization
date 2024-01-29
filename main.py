@@ -48,7 +48,7 @@ def attach_sensors(vehicle, world):
     sensor_bp.set_attribute('image_size_x', '640')
     sensor_bp.set_attribute('image_size_y', '360')
     sensor_bp.set_attribute('fov', '110')
-    sensor_bp.set_attribute('sensor_tick', '0.1')
+    sensor_bp.set_attribute('sensor_tick', '0.0')
 
     # attach it to the vehicle
     # This will place the camera in the front bumper of the car
@@ -64,22 +64,12 @@ def attach_sensors(vehicle, world):
     sensor_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
     # attributes
     sensor_bp.set_attribute('channels', '64')  # Increase the number of channels
-    sensor_bp.set_attribute('points_per_second', '100000')  # Increase point density
-    sensor_bp.set_attribute('rotation_frequency', '10.0')
+    sensor_bp.set_attribute('points_per_second', '1000000')  # Increase point density
+    sensor_bp.set_attribute('rotation_frequency', '50.0')
     sensor_bp.set_attribute('upper_fov', '20.0')  # Adjust FOV to cover a larger area
     sensor_bp.set_attribute('lower_fov', '-20.0')  # Adjust FOV to cover a larger area
     sensor_bp.set_attribute('range', '100.0')  # Increase the range for better coverage
-    sensor_bp.set_attribute('sensor_tick', '0.1')
-
-    '''
-    sensor_bp.set_attribute('channels', '32')
-    sensor_bp.set_attribute('points_per_second', '56000')
-    sensor_bp.set_attribute('rotation_frequency', '10.0')
-    sensor_bp.set_attribute('upper_fov', '15.0')
-    sensor_bp.set_attribute('lower_fov', '-30.0')
-    sensor_bp.set_attribute('range', '10.0')
-    sensor_bp.set_attribute('sensor_tick', '0.1')
-    '''
+    sensor_bp.set_attribute('sensor_tick', '0.0')
 
     # attach it to the vehicle
     # This will place the camera in the front bumper of the car
@@ -90,6 +80,25 @@ def attach_sensors(vehicle, world):
     ACTIVE_DATA.append(None)
     lidar_sensor.listen(lambda data: lidar_sensor_callback(data, 1))
     SENSOR_LIST.append((lidar_sensor, pygame.Surface((640, 360))))  # Store the sensor and its associated Pygame sub-surface
+
+    # ============ Radar =============
+    sensor_bp = world.get_blueprint_library().find('sensor.other.radar')
+    # attributes
+    sensor_bp.set_attribute('horizontal_fov', '30.0')
+    sensor_bp.set_attribute('vertical_fov', '30.0')
+    sensor_bp.set_attribute('points_per_second', '1500')
+    sensor_bp.set_attribute('range', '100')
+    sensor_bp.set_attribute('sensor_tick', '0.0')
+
+    # attach it to the vehicle
+    # This will place the camera in the front bumper of the car
+    transform = carla.Transform(carla.Location(x=0.8, z=1.7))
+    radar_sensor = world.spawn_actor(sensor_bp, transform, attach_to=vehicle)
+
+    # listen
+    ACTIVE_DATA.append(None)
+    radar_sensor.listen(lambda data: radar_sensor_callback(data, 2))
+    SENSOR_LIST.append((radar_sensor, pygame.Surface((640, 360))))  # Store the sensor and its associated Pygame sub-surface
 
 
 # This function decides what to do with the camera data, in the future i'll make a program to show it in real time, for now i'll just save the images
@@ -160,6 +169,44 @@ def lidar_sensor_callback(data, idx):
     # cv2.imwrite(f'data/lidar/{timestamp}.png', ACTIVE_LIDAR)
 
 
+def radar_sensor_callback(data, idx):
+    global ACTIVE_DATA
+
+    # Get the radar data
+    radar_data = data.raw_data
+    points = np.frombuffer(radar_data, dtype=np.dtype('f4'))
+    points = np.reshape(points, (len(data), 4))
+
+    # Extract information from radar points
+    velocities = points[:, 0]
+    azimuths = points[:, 1]
+    altitudes = points[:, 2]
+    depths = points[:, 3]
+
+    # Create a 2D histogram with a predetermined size
+    width, height = 640, 360
+    radar_image_array = np.zeros((height, width))
+
+    # Scale azimuth values to fit within the histogram size
+    azimuth_scaled = ((np.degrees(azimuths) + 180) / 360) * (width - 1)
+
+    # Round the scaled azimuth values to integers
+    azimuth_indices = np.round(azimuth_scaled).astype(int)
+
+    # Clip the indices to stay within the image bounds
+    azimuth_indices = np.clip(azimuth_indices, 0, width - 1)
+
+    # Assign velocities to the corresponding pixel in the histogram
+    radar_image_array[:, azimuth_indices] = velocities
+
+    # Clip the velocity values to stay within the valid color range
+    radar_image_array = np.clip(radar_image_array, 0, 255)
+
+    ACTIVE_DATA[idx] = radar_image_array
+
+    # Save image in directory
+    # timestamp = data.timestamp
+    # cv2.imwrite(f'data/radar/{timestamp}.png', ACTIVE_DATA[idx])
 
 
     
@@ -174,7 +221,6 @@ def destroy_vehicle(vehicle):
     vehicle.destroy()
 
 def play_window(world, vehicle, main_screen):
-
     try:
         while True:
             for event in pygame.event.get():
