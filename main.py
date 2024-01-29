@@ -186,9 +186,7 @@ def radar_sensor_callback(data, idx):
     points = np.reshape(points, (len(data), 4))
 
     # Extract information from radar points
-    velocities = points[:, 0]
     azimuths = points[:, 1]
-    altitudes = points[:, 2]
     depths = points[:, 3]
 
     # Create a 2D histogram with a predetermined size
@@ -198,23 +196,26 @@ def radar_sensor_callback(data, idx):
     # Scale azimuth values to fit within the histogram size
     azimuth_scaled = ((np.degrees(azimuths) + 180) / 360) * (width - 1)
 
-    # Round the scaled azimuth values to integers
+    # Scale depth values to fit within the histogram size
+    depth_scaled = (depths / 100) * (height - 1)
+
+    # Round the scaled azimuth and depth values to integers
     azimuth_indices = np.round(azimuth_scaled).astype(int)
+    depth_indices = np.round(depth_scaled).astype(int)
 
     # Clip the indices to stay within the image bounds
     azimuth_indices = np.clip(azimuth_indices, 0, width - 1)
+    depth_indices = np.clip(depth_indices, 0, height - 1)
 
-    # Assign velocities to the corresponding pixel in the histogram
-    radar_image_array[:, azimuth_indices] = velocities
+    # Set a value (e.g., velocity) at each (azimuth, depth) coordinate in the histogram
+    radar_image_array[depth_indices, azimuth_indices] = 255  # Set a constant value for visibility
 
-    # Clip the velocity values to stay within the valid color range
-    radar_image_array = np.clip(radar_image_array, 0, 255)
-
-    ACTIVE_DATA[idx] = radar_image_array
+    ACTIVE_DATA[idx] = radar_image_array[::-1]
 
     # Save image in directory
     # timestamp = data.timestamp
     # cv2.imwrite(f'data/radar/{timestamp}.png', ACTIVE_DATA[idx])
+
 
 
     
