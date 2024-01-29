@@ -9,12 +9,15 @@ from PIL import Image
 IM_WIDTH    = 1920
 IM_HEIGHT   = 1080
 FPS         = 30
-ACTIVE_DATA = [] # Stores the latest frame from each sensor 
+ACTIVE_DATA = []  # Stores the latest frame from each sensor
 VEHICLE     = "vehicle.tesla.model3"
-SENSOR_LIST = [] # The sensor objects should be stored in a persistent data structure or a global list to prevent them from being immediately destroyed when the function exits.
+SENSOR_LIST = []  # The sensor objects should be stored in a persistent data structure or a global list
 BORDER_WIDTH = 5
 MARGIN = 30
+NUM_COLS = 2  # Number of columns in the grid
+NUM_ROWS = 2  # Number of rows in the grid
 # ========================================================================================
+
 
 def create_vehicle(world):
     vehicle_bp = world.get_blueprint_library().filter(VEHICLE)
@@ -232,8 +235,13 @@ def play_window(world, vehicle, main_screen):
 
             for idx, (sensor, sub_surface) in enumerate(SENSOR_LIST):
                 sub_surface_width, sub_surface_height = sub_surface.get_size()
-                x_position = MARGIN + idx * (sub_surface_width + MARGIN)
-                y_position = MARGIN
+
+                # Calculate row and column index
+                row_idx = idx // NUM_COLS
+                col_idx = idx % NUM_COLS
+
+                x_position = MARGIN + col_idx * (sub_surface_width + MARGIN)
+                y_position = MARGIN + row_idx * (sub_surface_height + MARGIN)
 
                 # Draw a border around each sub-surface
                 pygame.draw.rect(main_screen, (50, 50, 50), (x_position - BORDER_WIDTH, y_position - BORDER_WIDTH,
@@ -254,6 +262,7 @@ def play_window(world, vehicle, main_screen):
         destroy_vehicle(vehicle)
         pygame.quit()
         print('Bye bye')
+
 
 def main():
     client = carla.Client('localhost', 2000)
