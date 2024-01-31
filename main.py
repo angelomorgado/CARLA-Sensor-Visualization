@@ -131,6 +131,15 @@ def attach_sensors(vehicle, world):
     ego_imu.listen(lambda imu: imu_callback(imu))
     SENSOR_LIST.append((ego_imu, None)) 
 
+    # ============ Collision =============
+    collision_bp = world.get_blueprint_library().find('sensor.other.collision')
+    collision_location = carla.Location(0,0,0)
+    collision_rotation = carla.Rotation(0,0,0)
+    collision_transform = carla.Transform(collision_location,collision_rotation)
+    ego_collision = world.spawn_actor(collision_bp,collision_transform,attach_to=vehicle, attachment_type=carla.AttachmentType.Rigid)
+    ego_collision.listen(lambda collision: collision_callback(collision))
+    SENSOR_LIST.append((ego_collision, None))
+
 
 def camera_sensor_callback(data, idx):
     global ACTIVE_DATA
@@ -245,6 +254,11 @@ def imu_callback(data):
     global IMU_DATA
     IMU_DATA = data
 
+# Activates each frame a collision is occuring
+def collision_callback(data):
+    print(f"Collision Occurred with intensity {data.intensity} at {data.timestamp} with {data.other_actor}")
+
+
     
 def destroy_vehicle(vehicle):
     vehicle.set_autopilot(False)
@@ -266,7 +280,7 @@ def play_window(world, vehicle, main_screen):
 
             main_screen.fill((127, 127, 127))  # Fill the main window with a gray background
 
-            for idx, (sensor, sub_surface) in enumerate(SENSOR_LIST[:-2]):
+            for idx, (sensor, sub_surface) in enumerate(SENSOR_LIST[:-3]):
                 sub_surface_width, sub_surface_height = sub_surface.get_size()
 
                 # Calculate row and column index

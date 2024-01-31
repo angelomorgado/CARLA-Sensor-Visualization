@@ -14,4 +14,4 @@ The main drawback is that this isn't dynamic, only allows pre determined sensors
 
 - Put the sensors information in a JSON so the code doesn't need to be rewritten
 
-- Collision, Lane Invasion, Obstacles sensors
+- Lane Invasion, Obstacles sensors
