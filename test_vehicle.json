@@ -2,17 +2,35 @@
     "camera":{
         "image_size_x": 640,
         "image_size_y": 360,
-        "fov": 90,
-        "sensor_tick": 1.0
+        "fov": 110,
+        "sensor_tick": 0.0
     },
     "lidar":{
-        "channels": 32,
-        "range": 10.0,
-        "points_per_second": 56000,
-        "rotation_frequency": 10.0,
-        "upper_fov": 15.0,
+        "channels": 64,
+        "range": 100.0,
+        "points_per_second": 1000000,
+        "rotation_frequency": 50.0,
+        "upper_fov": 20.0,
         "lower_fov": -30.0,
+        "sensor_tick": 0.0
+    },
+    "radar":{
+        "horizontal_fov": 30.0,
+        "vertical_fov": 30.0,
+        "points_per_second": 1500,
+        "range": 100,
+        "sensor_tick": 0.0
+    },
+    "gnss":{
         "sensor_tick": 0.1
+    },
+    "imu":{
+        "sensor_tick": 0.1
+    },
+    "collision":{
+        "on": 1
+    },
+    "lane":{
+        "on": 1
     }
 }
-
