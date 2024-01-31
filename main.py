@@ -140,6 +140,14 @@ def attach_sensors(vehicle, world):
     ego_collision.listen(lambda collision: collision_callback(collision))
     SENSOR_LIST.append((ego_collision, None))
 
+    # ============ Lane Invasion =============
+    lane_bp = world.get_blueprint_library().find('sensor.other.lane_invasion')
+    lane_location = carla.Location(0,0,0)
+    lane_rotation = carla.Rotation(0,0,0)
+    lane_transform = carla.Transform(lane_location,lane_rotation)
+    ego_lane = world.spawn_actor(lane_bp,lane_transform,attach_to=vehicle, attachment_type=carla.AttachmentType.Rigid)
+    ego_lane.listen(lambda lane: lane_callback(lane))
+    SENSOR_LIST.append((ego_lane, None))
 
 def camera_sensor_callback(data, idx):
     global ACTIVE_DATA
@@ -256,8 +264,10 @@ def imu_callback(data):
 
 # Activates each frame a collision is occuring
 def collision_callback(data):
-    print(f"Collision Occurred with intensity {data.intensity} at {data.timestamp} with {data.other_actor}")
+    print(f"Collision Occurred at {data.timestamp} with {data.other_actor}")
 
+def lane_callback(data):
+    print(f"Lane Invasion Occurred at {data.timestamp} with {data.crossed_lane_markings}")
 
     
 def destroy_vehicle(vehicle):
@@ -280,7 +290,7 @@ def play_window(world, vehicle, main_screen):
 
             main_screen.fill((127, 127, 127))  # Fill the main window with a gray background
 
-            for idx, (sensor, sub_surface) in enumerate(SENSOR_LIST[:-3]):
+            for idx, (sensor, sub_surface) in enumerate(SENSOR_LIST[:-4]):
                 sub_surface_width, sub_surface_height = sub_surface.get_size()
 
                 # Calculate row and column index
