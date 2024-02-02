@@ -2,7 +2,6 @@ import carla
 import random
 import json
 import os
-import pygame
 
 import configuration
 import sensors
@@ -41,15 +40,12 @@ def attach_sensors(vehicle, vehicle_data, world):
     for sensor in vehicle_data:
         if sensor == 'rgb_camera':
             configuration.SENSOR_DICT[sensor]    = sensors.RGB_Camera(world=world, vehicle=vehicle, sensor_dict=vehicle_data['rgb_camera'])
-            configuration.SENSOR_WINDOWS[sensor] = pygame.Surface((640, 360))
             os.makedirs('data/rgb_camera', exist_ok=True)
         elif sensor == 'lidar':
             configuration.SENSOR_DICT[sensor]    = sensors.Lidar(world=world, vehicle=vehicle, sensor_dict=vehicle_data['lidar'])
-            configuration.SENSOR_WINDOWS[sensor] = pygame.Surface((640, 360))
             os.makedirs('data/lidar', exist_ok=True)
         elif sensor == 'radar':
             configuration.SENSOR_DICT[sensor]    = sensors.Radar(world=world, vehicle=vehicle, sensor_dict=vehicle_data['radar'])
-            configuration.SENSOR_WINDOWS[sensor] = pygame.Surface((640, 360))
             os.makedirs('data/radar', exist_ok=True)
         elif sensor == 'gnss':
             configuration.SENSOR_DICT[sensor]    = sensors.GNSS(world=world, vehicle=vehicle, sensor_dict=vehicle_data['gnss'])

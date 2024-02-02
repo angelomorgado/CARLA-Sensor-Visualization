@@ -4,6 +4,12 @@ import configuration
 def initialize_pygame_window(title):
     pygame.init()
     pygame.display.set_caption(title)
+
+    # Initialize the sensor windows
+    for sensor in configuration.SENSOR_DICT:
+        if sensor not in configuration.NON_DISPLAYABLE_SENSORS:
+            configuration.SENSOR_WINDOWS[sensor] = pygame.Surface((640, 360))
+
     return pygame.display.set_mode((configuration.IM_WIDTH, configuration.IM_HEIGHT))
 
 def play_window(main_screen):

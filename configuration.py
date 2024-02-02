@@ -21,3 +21,5 @@ DATA_DICT = {}
 
 # Dict holding the pygame subsurfaces for each displayable sensor
 SENSOR_WINDOWS = {}
+
+NON_DISPLAYABLE_SENSORS = ['gnss', 'imu', 'collision', 'lane_invasion']
