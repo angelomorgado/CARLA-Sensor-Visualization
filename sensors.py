@@ -116,6 +116,9 @@ class Lidar:
         if global_variables.VERBOSE:
             timestamp = data.timestamp
             cv2.imwrite(f'data/lidar/{timestamp}.png', lidar_image_array)
+    
+    def destroy(self):
+        self.sensor.destroy()
 
 # ====================================== Radar ======================================
 class Radar:
@@ -177,6 +180,9 @@ class Radar:
         if global_variables.VERBOSE:
             timestamp = data.timestamp
             cv2.imwrite(f'data/radar/{timestamp}.png', radar_image_array)
+    
+    def destroy(self):
+        self.sensor.destroy()
 
 # ====================================== GNSS ======================================
 class GNSS:
@@ -198,6 +204,9 @@ class GNSS:
     def callback(self, data):
         global global_variables
         global_variables.DATA_DICT['gnss'] = data
+
+    def destroy(self):
+        self.sensor.destroy()
 
 
 # ====================================== IMU ======================================
@@ -221,6 +230,9 @@ class IMU:
         global global_variables
         global_variables.DATA_DICT['imu'] = data
 
+    def destroy(self):
+        self.sensor.destroy()
+
 # ====================================== Collision ======================================
 class Collision:
     def __init__(self, world, vehicle, sensor_dict):
@@ -239,6 +251,9 @@ class Collision:
     def callback(self, data):
         print(f"Collision Occurred at {data.timestamp} with {data.other_actor}")
 
+    def destroy(self):
+        self.sensor.destroy()
+
 # ====================================== Lane Invasion ======================================
 class Lane_Invasion:
     def __init__(self, world, vehicle, sensor_dict):
@@ -256,3 +271,6 @@ class Lane_Invasion:
     
     def callback(self, data):
         print(f"Lane Invasion Occurred at {data.timestamp} with {data.crossed_lane_markings}")
+
+    def destroy(self):
+        self.sensor.destroy()

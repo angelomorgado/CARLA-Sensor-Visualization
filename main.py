@@ -1,9 +1,6 @@
 import pygame
-import cv2
 import carla
-import numpy as np
 import random
-from PIL import Image
 import json
 
 import global_variables
@@ -67,12 +64,12 @@ def destroy_vehicle(vehicle):
 
     # Destroy sensors
     for sensor in global_variables.SENSOR_DICT:
-        global_variables.SENSOR_DICT['sensor'].destroy()
+        global_variables.SENSOR_DICT[sensor].destroy()
     
     global_variables.SENSOR_WINDOWS.clear()
     vehicle.destroy()
 
-def play_window(world, vehicle, main_screen):
+def play_window(vehicle, main_screen):
     try:
         while True:
             for event in pygame.event.get():
@@ -155,7 +152,7 @@ def main():
     pygame.init()
     pygame.display.set_caption('Carla Sensor feed')
     main_screen = pygame.display.set_mode((global_variables.IM_WIDTH, global_variables.IM_HEIGHT))
-    play_window(world, vehicle, main_screen)
+    play_window(vehicle, main_screen)
 
 if __name__ == '__main__':
     main()
