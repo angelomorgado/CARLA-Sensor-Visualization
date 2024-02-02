@@ -1,3 +1,8 @@
+'''
+Display Module:
+    It provides the functionality to display the sensor data in a window using Pygame.
+'''
+
 import pygame
 import configuration
 

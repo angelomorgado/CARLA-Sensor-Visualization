@@ -1,3 +1,8 @@
+'''
+Main window:
+    It acts as the center of the entire program controlling the entire process.
+'''
+
 import carla
 
 import display

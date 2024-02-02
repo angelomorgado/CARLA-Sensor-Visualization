@@ -1,3 +1,25 @@
+'''
+Sensors Module:
+    It provides classes for each CARLA sensor to attach to the vehicle and listen to the data from the sensor using callbacks.
+
+    Available sensors:
+        - RGB Camera
+        - LiDAR
+        - Radar
+        - GNSS
+        - IMU
+        - Collision
+        - Lane Invasion
+    
+    Future Sensors:
+        - Semantic Segmentation Camera
+        - Instance Segmentation Camera
+        - Depth Camera
+        - Lidar Semantic Segmentation
+        - Obstacle Detection
+        - Optical Flow Camera (AKA: Motion Camera)
+'''
+
 import carla
 import numpy as np
 from PIL import Image

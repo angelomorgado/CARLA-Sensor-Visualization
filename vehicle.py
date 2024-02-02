@@ -1,3 +1,10 @@
+'''
+Vehicle Module:
+    It provides the functionality to create and destroy the vehicle and attach the sensors present in a JSON file to it.
+
+    It also provides the functionlity to control the vehicle based on the action space provided by the environment.
+'''
+
 import carla
 import random
 import json
