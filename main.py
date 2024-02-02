@@ -91,7 +91,7 @@ def main():
 
     # Initialize pygame
     main_screen = display.initialize_pygame_window('Carla Sensor feed')
-    display.play_window(vehicle, main_screen)
+    display.play_window(main_screen)
 
     # When terminated destroy the vehicle
     destroy_vehicle(vehicle=vehicle)

@@ -6,7 +6,9 @@ def initialize_pygame_window(title):
     pygame.display.set_caption(title)
     return pygame.display.set_mode((configuration.IM_WIDTH, configuration.IM_HEIGHT))
 
-def play_window(vehicle, main_screen):
+def play_window(main_screen):
+    clock = pygame.time.Clock()  # Create a clock object to control the frame rate
+
     try:
         while True:
             for event in pygame.event.get():
@@ -64,6 +66,9 @@ def play_window(vehicle, main_screen):
                 main_screen.blit(imu_surface, imu_text_rect)
 
             pygame.display.flip()
+
+            # Limit the frame rate to SENSOR_FPS
+            clock.tick(configuration.SENSOR_FPS)
 
     finally:
         pygame.quit()
