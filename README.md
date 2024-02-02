@@ -32,21 +32,21 @@ These modules are coded to be extremely dynamic, allowing their integration with
 ## Sensors
 
 Available sensors:
-    - RGB Camera
-    - LiDAR
-    - Radar
-    - GNSS
-    - IMU
-    - Collision
-    - Lane Invasion
+- RGB Camera
+- LiDAR
+- Radar
+- GNSS
+- IMU
+- Collision
+- Lane Invasion
 
 Future sensors:
-    - Semantic Segmentation Camera
-    - Instance Segmentation Camera
-    - Depth Camera
-    - Lidar Semantic Segmentation
-    - Obstacle Detection
-    - Optical Flow Camera (AKA: Motion Camera)
+- Semantic Segmentation Camera
+- Instance Segmentation Camera
+- Depth Camera
+- Lidar Semantic Segmentation
+- Obstacle Detection
+- Optical Flow Camera (AKA: Motion Camera)
 
 The collision and lane invasion sensors are special in the way that they are only triggered when the vehicle collides with something or invades a lane, respectively. And their information is not displayed in the PyGame window, but in the terminal.
 
