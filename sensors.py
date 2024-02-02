@@ -2,7 +2,7 @@ import carla
 import numpy as np
 from PIL import Image
 import cv2
-import global_variables
+import configuration
 
 # ====================================== RGB Camera ======================================
 class RGB_Camera:
@@ -25,7 +25,7 @@ class RGB_Camera:
         return camera_sensor
     
     def callback(self, data):
-        global global_variables
+        global configuration
 
         # Get the image from the data
         image = Image.frombytes('RGBA', (data.width, data.height), data.raw_data, 'raw', 'RGBA')
@@ -39,10 +39,10 @@ class RGB_Camera:
         image_array = cv2.cvtColor(image_array, cv2.COLOR_RGBA2RGB)
 
         # Display the processed image using Pygame
-        global_variables.DATA_DICT['rgb_camera'] = image_array
+        configuration.DATA_DICT['rgb_camera'] = image_array
 
         # Save image in directory
-        if global_variables.VERBOSE:
+        if configuration.VERBOSE:
             timestamp = data.timestamp
             cv2.imwrite(f'data/rgb_camera/{timestamp}.png', image_array)
     
@@ -73,7 +73,7 @@ class Lidar:
         return lidar_sensor
     
     def callback(self, data):
-        global global_variables
+        global configuration
 
         # Get the LiDAR point cloud from the data
         lidar_data = data.raw_data
@@ -110,10 +110,10 @@ class Lidar:
         lidar_image_array = np.clip(lidar_image_array, 0, 255)
 
         # Display the processed image using Pygame
-        global_variables.DATA_DICT['lidar'] = lidar_image_array
+        configuration.DATA_DICT['lidar'] = lidar_image_array
 
         # Save image in directory
-        if global_variables.VERBOSE:
+        if configuration.VERBOSE:
             timestamp = data.timestamp
             cv2.imwrite(f'data/lidar/{timestamp}.png', lidar_image_array)
     
@@ -142,7 +142,7 @@ class Radar:
         return radar_sensor
     
     def callback(self, data):
-        global global_variables
+        global configuration
 
         # Get the radar data
         radar_data = data.raw_data
@@ -174,10 +174,10 @@ class Radar:
         # Set a value (e.g., velocity) at each (azimuth, depth) coordinate in the histogram
         radar_image_array[depth_indices, azimuth_indices] = 255  # Set a constant value for visibility
 
-        global_variables.DATA_DICT['radar'] = radar_image_array
+        configuration.DATA_DICT['radar'] = radar_image_array
 
         # Save image in directory
-        if global_variables.VERBOSE:
+        if configuration.VERBOSE:
             timestamp = data.timestamp
             cv2.imwrite(f'data/radar/{timestamp}.png', radar_image_array)
     
@@ -202,8 +202,8 @@ class GNSS:
         return gnss_sensor
     
     def callback(self, data):
-        global global_variables
-        global_variables.DATA_DICT['gnss'] = data
+        global configuration
+        configuration.DATA_DICT['gnss'] = data
 
     def destroy(self):
         self.sensor.destroy()
@@ -227,8 +227,8 @@ class IMU:
         return imu_sensor
     
     def callback(self, data):
-        global global_variables
-        global_variables.DATA_DICT['imu'] = data
+        global configuration
+        configuration.DATA_DICT['imu'] = data
 
     def destroy(self):
         self.sensor.destroy()

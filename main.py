@@ -4,13 +4,13 @@ import random
 import json
 import os
 
-import global_variables
+import configuration
 import sensors
 import display
 
 
 def create_vehicle(world):
-    vehicle_bp = world.get_blueprint_library().filter(global_variables.VEHICLE)
+    vehicle_bp = world.get_blueprint_library().filter(configuration.VEHICLE_MODEL)
     spawn_points = world.get_map().get_spawn_points()
     
     vehicle = None
@@ -27,7 +27,7 @@ def create_vehicle(world):
             pass
     
     # Attach sensors
-    vehicle_data = read_vehicle_file('test_vehicle.json')
+    vehicle_data = read_vehicle_file(configuration.VEHICLE_SENSORS_FILE)
     attach_sensors(vehicle, vehicle_data, world)
     
     return vehicle
@@ -41,25 +41,25 @@ def read_vehicle_file(vehicle_json):
 def attach_sensors(vehicle, vehicle_data, world):
     for sensor in vehicle_data:
         if sensor == 'rgb_camera':
-            global_variables.SENSOR_DICT[sensor]    = sensors.RGB_Camera(world=world, vehicle=vehicle, sensor_dict=vehicle_data['rgb_camera'])
-            global_variables.SENSOR_WINDOWS[sensor] = pygame.Surface((640, 360))
+            configuration.SENSOR_DICT[sensor]    = sensors.RGB_Camera(world=world, vehicle=vehicle, sensor_dict=vehicle_data['rgb_camera'])
+            configuration.SENSOR_WINDOWS[sensor] = pygame.Surface((640, 360))
             os.makedirs('data/rgb_camera', exist_ok=True)
         elif sensor == 'lidar':
-            global_variables.SENSOR_DICT[sensor]    = sensors.Lidar(world=world, vehicle=vehicle, sensor_dict=vehicle_data['lidar'])
-            global_variables.SENSOR_WINDOWS[sensor] = pygame.Surface((640, 360))
+            configuration.SENSOR_DICT[sensor]    = sensors.Lidar(world=world, vehicle=vehicle, sensor_dict=vehicle_data['lidar'])
+            configuration.SENSOR_WINDOWS[sensor] = pygame.Surface((640, 360))
             os.makedirs('data/lidar', exist_ok=True)
         elif sensor == 'radar':
-            global_variables.SENSOR_DICT[sensor]    = sensors.Radar(world=world, vehicle=vehicle, sensor_dict=vehicle_data['radar'])
-            global_variables.SENSOR_WINDOWS[sensor] = pygame.Surface((640, 360))
+            configuration.SENSOR_DICT[sensor]    = sensors.Radar(world=world, vehicle=vehicle, sensor_dict=vehicle_data['radar'])
+            configuration.SENSOR_WINDOWS[sensor] = pygame.Surface((640, 360))
             os.makedirs('data/radar', exist_ok=True)
         elif sensor == 'gnss':
-            global_variables.SENSOR_DICT[sensor]    = sensors.GNSS(world=world, vehicle=vehicle, sensor_dict=vehicle_data['gnss'])
+            configuration.SENSOR_DICT[sensor]    = sensors.GNSS(world=world, vehicle=vehicle, sensor_dict=vehicle_data['gnss'])
         elif sensor == 'imu':
-            global_variables.SENSOR_DICT[sensor]    = sensors.IMU(world=world, vehicle=vehicle, sensor_dict=vehicle_data['imu'])
+            configuration.SENSOR_DICT[sensor]    = sensors.IMU(world=world, vehicle=vehicle, sensor_dict=vehicle_data['imu'])
         elif sensor == 'collision':
-            global_variables.SENSOR_DICT[sensor]    = sensors.Collision(world=world, vehicle=vehicle, sensor_dict=vehicle_data['collision'])
+            configuration.SENSOR_DICT[sensor]    = sensors.Collision(world=world, vehicle=vehicle, sensor_dict=vehicle_data['collision'])
         elif sensor == 'lane_invasion':
-            global_variables.SENSOR_DICT[sensor]    = sensors.Lane_Invasion(world=world, vehicle=vehicle, sensor_dict=vehicle_data['lane_invasion'])
+            configuration.SENSOR_DICT[sensor]    = sensors.Lane_Invasion(world=world, vehicle=vehicle, sensor_dict=vehicle_data['lane_invasion'])
         else:
             print('Error: Unknown sensor ', sensor)
 
@@ -68,10 +68,10 @@ def destroy_vehicle(vehicle):
     vehicle.set_autopilot(False)
 
     # Destroy sensors
-    for sensor in global_variables.SENSOR_DICT:
-        global_variables.SENSOR_DICT[sensor].destroy()
+    for sensor in configuration.SENSOR_DICT:
+        configuration.SENSOR_DICT[sensor].destroy()
     
-    global_variables.SENSOR_WINDOWS.clear()
+    configuration.SENSOR_WINDOWS.clear()
     vehicle.destroy()
 
 
