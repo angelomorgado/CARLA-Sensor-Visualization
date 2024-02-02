@@ -8,6 +8,15 @@ It is dynamic, being able to create new vehicle configurations based on Json fil
 
 ---
 
+## To Run the Project
+
+1. It is recommended to use a virtual environment with python 3.8. 
+2. Install the requirements with `pip install -r requirements.txt`
+3. Run the CARLA server with the desired map
+4. Run the project with `python main.py`
+
+---
+
 ## Modules
 
 - `main.py`: Main file, controls the entire process
