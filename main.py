@@ -5,8 +5,8 @@ Main window:
 
 import carla
 
-import display
-import vehicle
+from display import Display
+from vehicle import Vehicle
 
 def main():
     # Carla client
@@ -19,15 +19,15 @@ def main():
         return
     
     # Create vehicle
-    autonomous_vehicle = vehicle.create_vehicle(world)
+    autonomous_vehicle = Vehicle(world=world)
     autonomous_vehicle.set_autopilot(True)
 
-    # Initialize pygame
-    main_screen = display.initialize_pygame_window('Carla Sensor feed')
-    display.play_window(main_screen)
+    # Display the vehicle's sensors
+    display = Display('Carla Sensor feed', autonomous_vehicle)
+    display.play_window()
 
     # When terminated destroy the vehicle
-    vehicle.destroy_vehicle(vehicle=autonomous_vehicle)
+    autonomous_vehicle.destroy_vehicle()
 
 if __name__ == '__main__':
     main()

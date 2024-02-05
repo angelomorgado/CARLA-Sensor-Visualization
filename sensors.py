@@ -30,6 +30,7 @@ import configuration
 class RGB_Camera:
     def __init__(self, world, vehicle, sensor_dict):
         self.sensor = self.attach_rgb_camera(world, vehicle, sensor_dict)
+        self.last_data = None
         self.sensor.listen(lambda data: self.callback(data))
 
     def attach_rgb_camera(self, world, vehicle, sensor_dict):
@@ -61,12 +62,15 @@ class RGB_Camera:
         image_array = cv2.cvtColor(image_array, cv2.COLOR_RGBA2RGB)
 
         # Display the processed image using Pygame
-        configuration.DATA_DICT['rgb_camera'] = image_array
+        self.last_data = image_array
 
         # Save image in directory
         if configuration.VERBOSE:
             timestamp = data.timestamp
             cv2.imwrite(f'data/rgb_camera/{timestamp}.png', image_array)
+    
+    def get_last_data(self):
+        return self.last_data
     
     def destroy(self):
         self.sensor.destroy()
@@ -75,6 +79,7 @@ class RGB_Camera:
 class Lidar:
     def __init__(self, world, vehicle, sensor_dict):
         self.sensor = self.attach_lidar(world, vehicle, sensor_dict)
+        self.last_data = None
         self.sensor.listen(lambda data: self.callback(data))
 
     def attach_lidar(self, world, vehicle, sensor_dict):
@@ -132,12 +137,15 @@ class Lidar:
         lidar_image_array = np.clip(lidar_image_array, 0, 255)
 
         # Display the processed image using Pygame
-        configuration.DATA_DICT['lidar'] = lidar_image_array
+        self.last_data = lidar_image_array
 
         # Save image in directory
         if configuration.VERBOSE:
             timestamp = data.timestamp
             cv2.imwrite(f'data/lidar/{timestamp}.png', lidar_image_array)
+    
+    def get_last_data(self):
+        return self.last_data
     
     def destroy(self):
         self.sensor.destroy()
@@ -146,6 +154,7 @@ class Lidar:
 class Radar:
     def __init__(self, world, vehicle, sensor_dict):
         self.sensor = self.attach_radar(world, vehicle, sensor_dict)
+        self.last_data = None
         self.sensor.listen(lambda data: self.callback(data))
 
     def attach_radar(self, world, vehicle, sensor_dict):
@@ -196,13 +205,16 @@ class Radar:
         # Set a value (e.g., velocity) at each (azimuth, depth) coordinate in the histogram
         radar_image_array[depth_indices, azimuth_indices] = 255  # Set a constant value for visibility
 
-        configuration.DATA_DICT['radar'] = radar_image_array
+        self.last_data = radar_image_array
 
         # Save image in directory
         if configuration.VERBOSE:
             timestamp = data.timestamp
             cv2.imwrite(f'data/radar/{timestamp}.png', radar_image_array)
     
+    def get_last_data(self):
+        return self.last_data
+
     def destroy(self):
         self.sensor.destroy()
 
@@ -210,6 +222,7 @@ class Radar:
 class GNSS:
     def __init__(self, world, vehicle, sensor_dict):
         self.sensor = self.attach_gnss(world, vehicle, sensor_dict)
+        self.last_data = None
         self.sensor.listen(lambda data: self.callback(data))
 
     def attach_gnss(self, world, vehicle, sensor_dict):
@@ -225,7 +238,10 @@ class GNSS:
     
     def callback(self, data):
         global configuration
-        configuration.DATA_DICT['gnss'] = data
+        self.last_data = data
+
+    def get_last_data(self):
+        return self.last_data
 
     def destroy(self):
         self.sensor.destroy()
@@ -250,7 +266,10 @@ class IMU:
     
     def callback(self, data):
         global configuration
-        configuration.DATA_DICT['imu'] = data
+        self.last_data = data
+
+    def get_last_data(self):
+        return self.last_data
 
     def destroy(self):
         self.sensor.destroy()

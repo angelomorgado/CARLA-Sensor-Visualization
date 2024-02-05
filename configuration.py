@@ -11,15 +11,3 @@ SENSOR_FPS           = 30
 VERBOSE              = False
 VEHICLE_SENSORS_FILE = 'test_vehicle.json'
 VEHICLE_MODEL        = "vehicle.tesla.model3"
-
-# ============================ SHARED DATA (Do not modify) ============================
-# Sensor list so they are stored in a persistent data structure to remain active and to be properly destroyed
-SENSOR_DICT = {}
-
-# Dict with the last data from each sensor
-DATA_DICT = {}
-
-# Dict holding the pygame subsurfaces for each displayable sensor
-SENSOR_WINDOWS = {}
-
-NON_DISPLAYABLE_SENSORS = ['gnss', 'imu', 'collision', 'lane_invasion']
